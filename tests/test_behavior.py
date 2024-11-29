@@ -17,23 +17,57 @@ class EventStoreContainer(DockerContainer):
 def eventstore():
     print("\nPulling EventStore container image (this may take a while)...")
     container = EventStoreContainer()
+    
+    def print_logs():
+        print("\nContainer logs:")
+        print(container.get_logs())
+        
     with container:
-        print("Starting EventStore container...")
-        # Wait for EventStore to be fully ready by checking logs
-        wait_for_logs(container, "Started HTTP server")
-        wait_for_logs(container, "External TCP")
-        # Additional check - try to connect until port is ready
-        port = container.get_exposed_port(2113)
-        host = f"localhost:{port}"
-        print(f"EventStore container ready at {host}")
-        yield host
+        try:
+            print(f"Container started with ID: {container.get_container_id()}")
+            print("Waiting for EventStore to initialize...")
+            
+            # Wait for EventStore to be fully ready by checking logs
+            wait_for_logs(container, "Started HTTP server")
+            wait_for_logs(container, "External TCP")
+            
+            # Get connection details
+            port = container.get_exposed_port(2113)
+            host = f"localhost:{port}"
+            print(f"EventStore container ready at {host}")
+            
+            # Test connection
+            client = EventStoreDBClient(uri=f"esdb://{host}?tls=false")
+            print("Testing connection to EventStore...")
+            client.get_server_version()
+            print("Connection test successful")
+            
+            yield host
+            
+        except Exception as e:
+            print(f"Error during container setup: {e}")
+            print_logs()
+            raise
 
 def test_basic_stream_reading(eventstore):
-    # First, write some test events using the HTTP API
+    print("\nSetting up test_basic_stream_reading...")
     stream_name = "test-stream"
-    test_events = [
-        {"body": {"message": f"Test event {i}"}} for i in range(3)
-    ]
+    
+    # Create EventStore client to write test events
+    client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
+    print(f"Writing test events to {stream_name}...")
+    
+    # Write test events
+    for i in range(3):
+        client.append_to_stream(
+            stream_name,
+            current_version=None,
+            events=[{
+                'type': 'TestEvent',
+                'data': json.dumps({"body": {"message": f"Test event {i}"}}),
+            }]
+        )
+    print("Test events written successfully")
     
     # Run escat to read the events
     result = subprocess.run(
