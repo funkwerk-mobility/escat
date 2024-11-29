@@ -32,5 +32,5 @@ escat --no-metadata my-stream
 
 Connect with authentication:
 ```bash
-escat -u admin -p changeit my-stream
+escat --url "esdb://admin:changeit@localhost:2113?tls=false" my-stream
 ```
