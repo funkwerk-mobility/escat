@@ -4,13 +4,13 @@ from esdbclient import CaughtUp, EventStoreDBClient
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option('--url', help='EventStore connection URL (overrides --host if provided)')
-@click.option('--host', default='localhost:2113', help='EventStore host:port (default: localhost:2113)')
+@click.option('--host', default='localhost', help='EventStore host:port (default: localhost)')
 @click.option('--follow/--no-follow', default=False, help='Follow stream for new events (default: no-follow)')
 @click.option('--metadata/--no-metadata', default=True, help='Include event metadata in output (default: metadata)')
 @click.argument('stream_name')
 def main(url, host, follow, metadata, stream_name):
     """Read events from an EventStore stream"""
-    connection_url = url if url else f"esdb://{host}?tls=false"
+    connection_url = url if url else f"esdb://{host}:2113?tls=false"
     client = EventStoreDBClient(uri=connection_url)
 
     if follow:
