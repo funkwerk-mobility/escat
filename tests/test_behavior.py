@@ -29,9 +29,14 @@ def eventstore():
             print("Waiting for EventStore to initialize...")
             
             # Wait for EventStore to be fully ready by checking logs
-            wait_for_logs(container, "Started HTTP server")
-            wait_for_logs(container, "External TCP")
-            
+            try:
+                wait_for_logs(container, "Started HTTP server", timeout=30)
+                wait_for_logs(container, "External TCP", timeout=30)
+            except Exception as e:
+                print(f"\nTimeout waiting for EventStore logs: {e}")
+                print("\nCurrent container logs:")
+                print_logs()
+                raise Exception("EventStore failed to start properly") from e
             # Get connection details
             port = container.get_exposed_port(2113)
             host = f"localhost:{port}"
