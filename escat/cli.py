@@ -43,6 +43,9 @@ def main(host, port, follow, with_metadata, stream_name):
         except Exception as e:
             click.echo(f"Error: {str(e)}", err=True)
             raise click.Abort()
+    except Exception as e:
+        click.echo(f"Connection error: {str(e)}", err=True)
+        raise click.Abort()
 
 if __name__ == '__main__':
     main()
