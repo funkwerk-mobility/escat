@@ -95,7 +95,7 @@ class StreamContext:
 def test_context(eventstore):
     stream_name = f"test-stream-{uuid.uuid4()}"
     client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
-    return TestContext(eventstore, stream_name, client)
+    return StreamContext(eventstore, stream_name, client)
 
 def get_subprocess_env():
     env = os.environ.copy()
