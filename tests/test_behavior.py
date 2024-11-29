@@ -41,10 +41,10 @@ def eventstore():
             host = f"localhost:{port}"
             print(f"EventStore container ready at {host}")
             
-            # Test connection
+            # Test connection by reading $all stream
             client = EventStoreDBClient(uri=f"esdb://{host}?tls=false")
             print("Testing connection to EventStore...")
-            client.get_server_version()
+            list(client.read_all(max_count=1))
             print("Connection test successful")
             
             yield host
