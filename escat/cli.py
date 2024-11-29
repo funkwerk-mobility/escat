@@ -29,19 +29,21 @@ def main(host, port, follow, with_metadata, stream_name):
                         "data": event_data['body'],
                         "metadata": {
                             "id": str(event.id),
-                            "timestamp": event.created.isoformat(),
+                            # "timestamp": event.created.isoformat(),
                             "type": event.type,
                             "stream": event.stream_name,
-                            "revision": event.revision,
+                            # "revision": event.revision,
                         }
                     }
                     # Add correlation/causation IDs if present in custom metadata
-                    if event.custom_metadata:
-                        metadata = json.loads(event.custom_metadata)
-                        if 'correlation-id' in metadata:
-                            output["metadata"]["correlation_id"] = metadata['correlation-id']
-                        if 'causation-id' in metadata:
-                            output["metadata"]["causation_id"] = metadata['causation-id']
+                    if event.metadata:
+                        metadata = json.loads(event.metadata)
+                        if '$correlationId' in metadata:
+                            output["metadata"]["$correlationId"] = metadata['$correlationId']
+                        if '$causationId' in metadata:
+                            output["metadata"]["$causationId"] = metadata['$causationId']
+                        if 'timestamp' in metadata:
+                            output["metadata"]["timestamp"] = metadata['timestamp']
                     click.echo(json.dumps(output))
                 else:
                     click.echo(json.dumps(event_data['body']))
