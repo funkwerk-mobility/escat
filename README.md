@@ -15,6 +15,29 @@ Read all events from a stream:
 escat my-stream
 ```
 
+The output will be JSON lines with event data and metadata (by default):
+```json
+{
+  "data": {
+    "message": "Hello World"
+  },
+  "metadata": {
+    "id": "1234-5678-90ab-cdef",
+    "type": "TestEvent",
+    "stream": "my-stream"
+  }
+}
+```
+
+Note: Your event data should be wrapped in a "body" field when writing events:
+```json
+{
+  "body": {
+    "message": "Hello World"
+  }
+}
+```
+
 Follow a stream for new events:
 ```bash
 escat -f my-stream
@@ -33,6 +56,11 @@ escat -o last my-stream
 Exit after consuming 10 events:
 ```bash
 escat -c 10 my-stream
+```
+
+Read the special $all stream:
+```bash
+escat $all
 ```
 
 Quiet mode (suppress informational messages):
@@ -55,7 +83,7 @@ Or use a full connection URL:
 escat --url "esdb://eventstore.example.com:2113?tls=false" my-stream
 ```
 
-Read events without metadata (metadata included by default):
+Read events without metadata:
 ```bash
 escat --no-metadata my-stream
 ```
