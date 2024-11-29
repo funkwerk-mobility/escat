@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "escat"
+version = "0.1.0"
+authors = [
+  { name = "Your Name", email = "your.email@example.com" },
+]
+description = "EventStore CLI tool for reading and following streams"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0.0",
+    "esdbclient>=0.4.0",
+]
+
+[project.scripts]
+escat = "escat.cli:main"
