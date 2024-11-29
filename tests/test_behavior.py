@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 import uuid
+from dataclasses import dataclass
 from typing import List, Dict, Any
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
@@ -63,36 +64,14 @@ def eventstore():
             print_logs()
             raise
 
-def test_basic_stream_reading(eventstore):
+def test_basic_stream_reading(test_context):
     print("\nSetting up test_basic_stream_reading...")
-    stream_name = f"test-stream-{uuid.uuid4()}"
-    
-    # Create EventStore client to write test events
-    client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
-    print(f"Writing test events to {stream_name}...")
     
     # Write test events
-    for i in range(3):
-        data = json.dumps({"body": {"message": f"Test event {i}"}}).encode()
-        client.append_to_stream(
-            stream_name,
-            current_version=StreamState.ANY,
-            events=[NewEvent(
-                type="TestEvent",
-                data=data
-            )]
-        )
-    print("Test events written successfully")
+    write_test_events(test_context.client, test_context.stream_name, 3)
     
     # Run escat to read the events
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    result = subprocess.run(
-        ["python", "-m", "escat.cli", "--host", eventstore, "-q", stream_name],
-        capture_output=True,
-        text=True,
-        env=env
-    )
+    result = run_escat(test_context.eventstore_host, "-q", test_context.stream_name)
     
     # Parse the output
     output_events = [
@@ -106,11 +85,38 @@ def test_basic_stream_reading(eventstore):
         assert event["data"]["message"] == f"Test event {i}"
 
 
-def write_test_events(client: EventStoreDBClient, stream_name: str, count: int) -> None:
+@dataclass
+class TestContext:
+    eventstore_host: str
+    stream_name: str
+    client: EventStoreDBClient
+
+@pytest.fixture
+def test_context(eventstore):
+    stream_name = f"test-stream-{uuid.uuid4()}"
+    client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
+    return TestContext(eventstore, stream_name, client)
+
+def get_subprocess_env():
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return env
+
+def run_escat(host: str, *args, env=None):
+    if env is None:
+        env = get_subprocess_env()
+    return subprocess.run(
+        ["python", "-m", "escat.cli", "--host", host, *args],
+        capture_output=True,
+        text=True,
+        env=env
+    )
+
+def write_test_events(client: EventStoreDBClient, stream_name: str, count: int, prefix: str = "Test") -> None:
     """Write a series of test events to the stream."""
     print(f"Writing {count} test events to {stream_name}...")
     for i in range(count):
-        data = json.dumps({"body": {"message": f"Follow event {i}"}}).encode()
+        data = json.dumps({"body": {"message": f"{prefix} event {i}"}}).encode()
         client.append_to_stream(
             stream_name,
             current_version=StreamState.ANY,
@@ -135,16 +141,15 @@ def read_process_output(process: subprocess.Popen, expected_count: int, timeout_
         output.append(json.loads(line))
     return output
 
-def test_follow_and_count(eventstore):
+def test_follow_and_count(test_context):
     print("\nSetting up test_follow_and_count...")
-    stream_name = "test-follow"
     expected_events = 2
     
-    print(f"Starting escat process to follow {stream_name}...")
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print(f"Starting escat process to follow {test_context.stream_name}...")
+    env = get_subprocess_env()
     process = subprocess.Popen(
-        ["python", "-m", "escat.cli", "--host", eventstore, "-f", "-c", str(expected_events), "-q", stream_name],
+        ["python", "-m", "escat.cli", "--host", test_context.eventstore_host, 
+         "-f", "-c", str(expected_events), "-q", test_context.stream_name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
@@ -155,10 +160,7 @@ def test_follow_and_count(eventstore):
         print("Waiting for escat to initialize...")
         time.sleep(1)
         
-        print("Creating EventStore client...")
-        client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
-        
-        write_test_events(client, stream_name, 3)
+        write_test_events(test_context.client, test_context.stream_name, 3, prefix="Follow")
         output = read_process_output(process, expected_events)
     
     finally:
@@ -168,27 +170,11 @@ def test_follow_and_count(eventstore):
     assert len(output) == expected_events
     assert all("Follow event" in event["data"]["message"] for event in output)
 
-def test_offset_options(eventstore):
-    stream_name = "test-offset"
-    
+def test_offset_options(test_context):
     # Test reading from end
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    result = subprocess.run(
-        ["python", "-m", "escat.cli", "--host", eventstore, "-o", "end", "-q", stream_name],
-        capture_output=True,
-        text=True,
-        env=env
-    )
+    result = run_escat(test_context.eventstore_host, "-o", "end", "-q", test_context.stream_name)
     assert result.stdout.strip() == ""  # Should be empty when reading from end
     
     # Test reading last event
-    env = os.environ.copy()
-    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    result = subprocess.run(
-        ["python", "-m", "escat.cli", "--host", eventstore, "-o", "last", "-q", stream_name],
-        capture_output=True,
-        text=True,
-        env=env
-    )
+    result = run_escat(test_context.eventstore_host, "-o", "last", "-q", test_context.stream_name)
     assert len(result.stdout.strip().split('\n')) == 1  # Should only get one event
