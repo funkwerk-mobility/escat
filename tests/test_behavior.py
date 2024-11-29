@@ -172,17 +172,23 @@ def test_offset_options(eventstore):
     stream_name = "test-offset"
     
     # Test reading from end
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     result = subprocess.run(
-        ["escat", "--host", eventstore, "-o", "end", "-q", stream_name],
+        ["python", "-m", "escat.cli", "--host", eventstore, "-o", "end", "-q", stream_name],
         capture_output=True,
-        text=True
+        text=True,
+        env=env
     )
     assert result.stdout.strip() == ""  # Should be empty when reading from end
     
     # Test reading last event
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     result = subprocess.run(
-        ["escat", "--host", eventstore, "-o", "last", "-q", stream_name],
+        ["python", "-m", "escat.cli", "--host", eventstore, "-o", "last", "-q", stream_name],
         capture_output=True,
-        text=True
+        text=True,
+        env=env
     )
     assert len(result.stdout.strip().split('\n')) == 1  # Should only get one event
