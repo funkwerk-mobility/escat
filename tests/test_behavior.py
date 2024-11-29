@@ -8,7 +8,7 @@ import pytest
 
 class EventStoreContainer(DockerContainer):
     def __init__(self):
-        super().__init__("eventstore/eventstore:latest")
+        super().__init__("eventstore/eventstore:20.10.2-buster-slim")
         self.with_exposed_ports(2113)
         self.with_env("EVENTSTORE_INSECURE", "true")
         self.with_env("EVENTSTORE_ENABLE_EXTERNAL_TCP", "true")
