@@ -5,7 +5,7 @@ import uuid
 from typing import List, Dict, Any
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
-from esdbclient import EventStoreDBClient, StreamState
+from esdbclient import EventStoreDBClient, StreamState, NewEvent
 import pytest
 
 class EventStoreContainer(DockerContainer):
@@ -100,26 +100,19 @@ def test_basic_stream_reading(eventstore):
     for i, event in enumerate(output_events):
         assert event["message"] == f"Test event {i}"
 
-def create_test_event(i: int) -> Dict[str, Any]:
-    """Create a test event with the given index."""
-    return {
-        'id': str(uuid.uuid4()),
-        'type': 'TestEvent',
-        'data': json.dumps({"body": {"message": f"Follow event {i}"}})
-    }
 
 def write_test_events(client: EventStoreDBClient, stream_name: str, count: int) -> None:
     """Write a series of test events to the stream."""
     print(f"Writing {count} test events to {stream_name}...")
     for i in range(count):
-        event_dict = create_test_event(i)
+        data = json.dumps({"body": {"message": f"Follow event {i}"}}).encode()
         client.append_to_stream(
             stream_name,
             current_version=StreamState.NO_STREAM,
-            events=[{
-                'type': event_dict['type'],
-                'data': event_dict['data']
-            }]
+            events=[NewEvent(
+                type="TestEvent",
+                data=data
+            )]
         )
     print("Test events written successfully")
 
