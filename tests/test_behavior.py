@@ -75,7 +75,7 @@ def test_basic_stream_reading(eventstore):
         data = json.dumps({"body": {"message": f"Test event {i}"}}).encode()
         client.append_to_stream(
             stream_name,
-            current_version=StreamState.NO_STREAM,
+            current_version=StreamState.ANY,
             events=[NewEvent(
                 type="TestEvent",
                 data=data
