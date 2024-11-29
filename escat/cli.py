@@ -14,37 +14,33 @@ def main(host, port, follow, with_metadata, stream_name):
         uri=f"esdb://{host}:{port}?tls=false"
     )
     
-    try:
-        if stream_name == "$all":
-            events = client.read_all() if not follow else client.subscribe_to_all()
-        else:
-            events = client.read_stream(stream_name) if not follow else client.subscribe_to_stream(stream_name)
+    if stream_name == "$all":
+        events = client.read_all() if not follow else client.subscribe_to_all()
+    else:
+        events = client.read_stream(stream_name) if not follow else client.subscribe_to_stream(stream_name)
 
-        try:
-            for event in events:
-                # Parse bytes data as JSON
-                event_data = json.loads(event.data)
-                if isinstance(event_data, dict) and 'body' in event_data:
-                    output = event_data['body']
-                    if with_metadata:
-                        metadata = json.loads(event.metadata or '{}')
-                        metadata.update({
-                            "id": str(event.id),
-                            "type": event.type,
-                            "stream": event.stream_name,
-                        })
-                        output = {
-                            "data": output,
-                            "metadata": metadata
-                        }
-                    click.echo(json.dumps(output))
-        except KeyboardInterrupt:
-            click.echo("\nStopped following stream.", err=True)
-        except Exception as e:
-            click.echo(f"Error: {str(e)}", err=True)
-            raise click.Abort()
+    try:
+        for event in events:
+            # Parse bytes data as JSON
+            event_data = json.loads(event.data)
+            if isinstance(event_data, dict) and 'body' in event_data:
+                output = event_data['body']
+                if with_metadata:
+                    metadata = json.loads(event.metadata or '{}')
+                    metadata.update({
+                        "id": str(event.id),
+                        "type": event.type,
+                        "stream": event.stream_name,
+                    })
+                    output = {
+                        "data": output,
+                        "metadata": metadata
+                    }
+                click.echo(json.dumps(output))
+    except KeyboardInterrupt:
+        click.echo("\nStopped following stream.", err=True)
     except Exception as e:
-        click.echo(f"Connection error: {str(e)}", err=True)
+        click.echo(f"Error: {str(e)}", err=True)
         raise click.Abort()
 
 if __name__ == '__main__':
