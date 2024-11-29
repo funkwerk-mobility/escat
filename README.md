@@ -25,7 +25,7 @@ Connect to a specific EventStore instance:
 escat --url "esdb://eventstore.example.com:2113?tls=false" my-stream
 ```
 
-Exclude event metadata from output (included by default):
+Read events without metadata (metadata included by default):
 ```bash
 escat --no-metadata my-stream
 ```

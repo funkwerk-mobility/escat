@@ -5,7 +5,7 @@ from esdbclient import CaughtUp, EventStoreDBClient
 @click.command()
 @click.option('--url', default='esdb://localhost:2113?tls=false', help='EventStore connection URL')
 @click.option('--follow/--no-follow', default=False, help='Follow stream for new events')
-@click.option('--no-metadata/--with-metadata', default=False, help='Exclude event metadata from output')
+@click.option('--metadata/--no-metadata', default=True, help='Include event metadata in output')
 @click.argument('stream_name')
 def main(url, follow, no_metadata, stream_name):
     """Read events from an EventStore stream"""
@@ -31,9 +31,9 @@ def main(url, follow, no_metadata, stream_name):
                 continue
             if isinstance(event_data, dict) and 'body' in event_data:
                 output = event_data['body']
-                if not no_metadata:
-                    metadata = json.loads(event.metadata or '{}')
-                    metadata.update({
+                if metadata:
+                    event_metadata = json.loads(event.metadata or '{}')
+                    event_metadata.update({
                         "id": str(event.id),
                         "type": event.type,
                         "stream": event.stream_name,
