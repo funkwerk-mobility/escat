@@ -22,22 +22,22 @@ def main(host, port, follow, with_metadata, stream_name):
 
         try:
             for event in events:
-            # Parse bytes data as JSON
-            event_data = json.loads(event.data)
-            if isinstance(event_data, dict) and 'body' in event_data:
-                output = event_data['body']
-                if with_metadata:
-                    metadata = json.loads(event.metadata or '{}')
-                    metadata.update({
-                        "id": str(event.id),
-                        "type": event.type,
-                        "stream": event.stream_name,
-                    })
-                    output = {
-                        "data": output,
-                        "metadata": metadata
-                    }
-                click.echo(json.dumps(output))
+                # Parse bytes data as JSON
+                event_data = json.loads(event.data)
+                if isinstance(event_data, dict) and 'body' in event_data:
+                    output = event_data['body']
+                    if with_metadata:
+                        metadata = json.loads(event.metadata or '{}')
+                        metadata.update({
+                            "id": str(event.id),
+                            "type": event.type,
+                            "stream": event.stream_name,
+                        })
+                        output = {
+                            "data": output,
+                            "metadata": metadata
+                        }
+                    click.echo(json.dumps(output))
         except KeyboardInterrupt:
             click.echo("\nStopped following stream.", err=True)
         except Exception as e:
