@@ -7,7 +7,7 @@ from esdbclient import CaughtUp, EventStoreDBClient
 @click.option('--follow/--no-follow', default=False, help='Follow stream for new events')
 @click.option('--metadata/--no-metadata', default=True, help='Include event metadata in output')
 @click.argument('stream_name')
-def main(url, follow, no_metadata, stream_name):
+def main(url, follow, metadata, stream_name):
     """Read events from an EventStore stream"""
     client = EventStoreDBClient(uri=url)
 
