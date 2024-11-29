@@ -64,7 +64,7 @@ def eventstore():
 
 def test_basic_stream_reading(eventstore):
     print("\nSetting up test_basic_stream_reading...")
-    stream_name = "test-stream"
+    stream_name = f"test-stream-{uuid.uuid4()}"
     
     # Create EventStore client to write test events
     client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
