@@ -3,13 +3,15 @@ import json
 from esdbclient import CaughtUp, EventStoreDBClient
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
-@click.option('--url', default='esdb://localhost:2113?tls=false', help='EventStore connection URL (default: esdb://localhost:2113?tls=false)')
+@click.option('--url', help='EventStore connection URL (overrides --host if provided)')
+@click.option('--host', default='localhost:2113', help='EventStore host:port (default: localhost:2113)')
 @click.option('--follow/--no-follow', default=False, help='Follow stream for new events (default: no-follow)')
 @click.option('--metadata/--no-metadata', default=True, help='Include event metadata in output (default: metadata)')
 @click.argument('stream_name')
-def main(url, follow, metadata, stream_name):
+def main(url, host, follow, metadata, stream_name):
     """Read events from an EventStore stream"""
-    client = EventStoreDBClient(uri=url)
+    connection_url = url if url else f"esdb://{host}?tls=false"
+    client = EventStoreDBClient(uri=connection_url)
 
     if follow:
         click.echo(f"Following {stream_name}...", err=True)

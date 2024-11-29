@@ -22,6 +22,11 @@ escat --follow my-stream
 
 Connect to a specific EventStore instance:
 ```bash
+escat --host eventstore.example.com:2113 my-stream
+```
+
+Or use a full connection URL:
+```bash
 escat --url "esdb://eventstore.example.com:2113?tls=false" my-stream
 ```
 
