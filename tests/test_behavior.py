@@ -112,10 +112,14 @@ def write_test_events(client: EventStoreDBClient, stream_name: str, count: int) 
     """Write a series of test events to the stream."""
     print(f"Writing {count} test events to {stream_name}...")
     for i in range(count):
+        event_dict = create_test_event(i)
         client.append_to_stream(
             stream_name,
             current_version=StreamState.NO_STREAM,
-            events=[create_test_event(i)]
+            events=[{
+                'type': event_dict['type'],
+                'data': event_dict['data']
+            }]
         )
     print("Test events written successfully")
 
