@@ -86,7 +86,7 @@ def test_basic_stream_reading(test_context):
 
 
 @dataclass
-class TestContext:
+class StreamContext:
     eventstore_host: str
     stream_name: str
     client: EventStoreDBClient
