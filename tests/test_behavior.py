@@ -30,7 +30,7 @@ def eventstore():
             
             # Get connection details
             port = container.get_exposed_port(2114)
-            host = f"localhost:{port}"
+            host = container.get_container_host_ip()
             print(f"EventStore container ready at {host}")
             
             # Wait up to 30 seconds for successful connection
