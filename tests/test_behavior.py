@@ -72,13 +72,14 @@ def test_basic_stream_reading(eventstore):
     
     # Write test events
     for i in range(3):
+        data = json.dumps({"body": {"message": f"Test event {i}"}}).encode()
         client.append_to_stream(
             stream_name,
             current_version=StreamState.NO_STREAM,
-            events=[{
-                'type': 'TestEvent',
-                'data': json.dumps({"body": {"message": f"Test event {i}"}}),
-            }]
+            events=[NewEvent(
+                type="TestEvent",
+                data=data
+            )]
         )
     print("Test events written successfully")
     
@@ -98,7 +99,7 @@ def test_basic_stream_reading(eventstore):
     # Verify we got all events in order
     assert len(output_events) == 3
     for i, event in enumerate(output_events):
-        assert event["message"] == f"Test event {i}"
+        assert event["data"]["message"] == f"Test event {i}"
 
 
 def write_test_events(client: EventStoreDBClient, stream_name: str, count: int) -> None:
