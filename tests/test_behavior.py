@@ -1,6 +1,7 @@
 import json
 import subprocess
 import time
+import uuid
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 from esdbclient import EventStoreDBClient, StreamState
@@ -126,6 +127,7 @@ def test_follow_and_count(eventstore):
                 stream_name,
                 current_version=StreamState.NO_STREAM,
                 events=[{
+                    'id': str(uuid.uuid4()),
                     'type': 'TestEvent',
                     'data': json.dumps({"body": {"message": f"Follow event {i}"}}),
                 }]
