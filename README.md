@@ -25,7 +25,12 @@ Connect to a specific EventStore instance:
 escat --host eventstore.example.com --port 2113 my-stream
 ```
 
-Include event metadata in output:
+Exclude event metadata from output (included by default):
 ```bash
-escat --with-metadata my-stream
+escat --no-metadata my-stream
+```
+
+Connect with authentication:
+```bash
+escat -u admin -p changeit my-stream
 ```

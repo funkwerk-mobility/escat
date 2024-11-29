@@ -5,14 +5,18 @@ from esdbclient import CaughtUp, EventStoreDBClient
 @click.command()
 @click.option('--host', default='localhost', help='EventStore host')
 @click.option('--port', default=2113, help='EventStore port')
+@click.option('--username', '-u', help='Username for authentication')
+@click.option('--password', '-p', help='Password for authentication')
 @click.option('--follow/--no-follow', default=False, help='Follow stream for new events')
-@click.option('--with-metadata/--no-metadata', default=False, help='Include event metadata in output')
+@click.option('--no-metadata/--with-metadata', default=False, help='Exclude event metadata from output')
 @click.argument('stream_name')
-def main(host, port, follow, with_metadata, stream_name):
+def main(host, port, username, password, follow, no_metadata, stream_name):
     """Read events from an EventStore stream"""
-    client = EventStoreDBClient(
-        uri=f"esdb://{host}:{port}?tls=false"
-    )
+    uri = f"esdb://{host}:{port}?tls=false"
+    if username and password:
+        uri = f"esdb://{username}:{password}@{host}:{port}?tls=false"
+    
+    client = EventStoreDBClient(uri=uri)
 
     if follow:
         click.echo(f"Following {stream_name}...", err=True)
@@ -34,7 +38,7 @@ def main(host, port, follow, with_metadata, stream_name):
                 continue
             if isinstance(event_data, dict) and 'body' in event_data:
                 output = event_data['body']
-                if with_metadata:
+                if not no_metadata:
                     metadata = json.loads(event.metadata or '{}')
                     metadata.update({
                         "id": str(event.id),
