@@ -42,6 +42,11 @@ test = [
     "pytest>=7.0.0",
     "testcontainers>=3.7.0",
 ]
+validate = [
+    "check-wheel-contents>=0.4.0",
+    "twine>=4.0.0",
+    "build>=1.0.0",
+]
 
 [project.scripts]
 escat = "escat.cli:main"
