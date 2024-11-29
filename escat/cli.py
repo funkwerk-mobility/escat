@@ -2,7 +2,7 @@ import click
 import json
 from esdbclient import CaughtUp, EventStoreDBClient
 
-@click.command()
+@click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option('--url', default='esdb://localhost:2113?tls=false', help='EventStore connection URL')
 @click.option('--follow/--no-follow', default=False, help='Follow stream for new events')
 @click.option('--metadata/--no-metadata', default=True, help='Include event metadata in output')
