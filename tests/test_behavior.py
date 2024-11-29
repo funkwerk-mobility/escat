@@ -9,10 +9,10 @@ import pytest
 class EventStoreContainer(DockerContainer):
     def __init__(self):
         super().__init__("eventstore/eventstore:20.10.2-buster-slim")
-        self.with_exposed_ports(2113)
+        self.with_exposed_ports(2114)
         self.with_env("EVENTSTORE_INSECURE", "true")
-        self.with_env("EVENTSTORE_EXT_TCP_PORT", "1113")
-        self.with_env("EVENTSTORE_EXT_HTTP_PORT", "2113")
+        self.with_env("EVENTSTORE_EXT_TCP_PORT", "1114")
+        self.with_env("EVENTSTORE_EXT_HTTP_PORT", "2114")
 
 @pytest.fixture(scope="session")
 def eventstore():
@@ -29,7 +29,7 @@ def eventstore():
             print("Waiting for EventStore to initialize...")
             
             # Get connection details
-            port = container.get_exposed_port(2113)
+            port = container.get_exposed_port(2114)
             host = f"localhost:{port}"
             print(f"EventStore container ready at {host}")
             
