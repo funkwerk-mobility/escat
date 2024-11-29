@@ -3,7 +3,7 @@ import subprocess
 import time
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
-from esdbclient import EventStoreDBClient
+from esdbclient import EventStoreDBClient, StreamState
 import pytest
 
 class EventStoreContainer(DockerContainer):
@@ -72,7 +72,7 @@ def test_basic_stream_reading(eventstore):
     for i in range(3):
         client.append_to_stream(
             stream_name,
-            current_version=None,
+            current_version=StreamState.NO_STREAM,
             events=[{
                 'type': 'TestEvent',
                 'data': json.dumps({"body": {"message": f"Test event {i}"}}),
