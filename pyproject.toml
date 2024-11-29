@@ -6,11 +6,32 @@ build-backend = "hatchling.build"
 name = "escat"
 version = "0.1.0"
 authors = [
-  { name = "Your Name", email = "your.email@example.com" },
+  { name = "Philipp Schuster", email = "phip1611@gmail.com" },
 ]
 description = "EventStore CLI tool for reading and following streams"
 readme = "README.md"
 requires-python = ">=3.8"
+license = "MIT"
+keywords = ["eventstore", "cli", "streaming", "events"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Database",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities"
+]
+
+[project.urls]
+Homepage = "https://github.com/phip1611/escat"
+Documentation = "https://github.com/phip1611/escat#readme"
+Repository = "https://github.com/phip1611/escat.git"
 dependencies = [
     "click>=8.0.0",
     "esdbclient>=0.4.0",
