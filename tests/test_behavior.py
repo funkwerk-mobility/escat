@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import time
 import uuid
@@ -84,10 +85,13 @@ def test_basic_stream_reading(eventstore):
     print("Test events written successfully")
     
     # Run escat to read the events
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     result = subprocess.run(
-        ["escat", "--host", eventstore, "-q", stream_name],
+        ["python", "-m", "escat.cli", "--host", eventstore, "-q", stream_name],
         capture_output=True,
-        text=True
+        text=True,
+        env=env
     )
     
     # Parse the output
@@ -137,11 +141,14 @@ def test_follow_and_count(eventstore):
     expected_events = 2
     
     print(f"Starting escat process to follow {stream_name}...")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     process = subprocess.Popen(
-        ["escat", "--host", eventstore, "-f", "-c", str(expected_events), "-q", stream_name],
+        ["python", "-m", "escat.cli", "--host", eventstore, "-f", "-c", str(expected_events), "-q", stream_name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        env=env
     )
     
     try:
