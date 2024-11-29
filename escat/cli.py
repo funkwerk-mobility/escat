@@ -27,16 +27,14 @@ def main(host, port, follow, with_metadata, stream_name):
                 output = event_data['body']
                 if with_metadata:
                     metadata = json.loads(event.metadata or '{}')
+                    metadata.update({
+                        "id": str(event.id),
+                        "type": event.type,
+                        "stream": event.stream_name,
+                    })
                     output = {
                         "data": output,
-                        "metadata": {
-                            "id": str(event.id),
-                            "type": event.type,
-                            "stream": event.stream_name,
-                            "timestamp": metadata.get('timestamp'),
-                            "$correlationId": metadata.get('$correlationId'),
-                            "$causationId": metadata.get('$causationId')
-                        }
+                        "metadata": metadata
                     }
                 click.echo(json.dumps(output))
     except Exception as e:
