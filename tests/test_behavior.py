@@ -25,7 +25,7 @@ def eventstore():
         
     with container:
         try:
-            print(f"Container started with ID: {container.get_container_id()}")
+            print(f"Container started with ID: {container.get_wrapped_container().id}")
             print("Waiting for EventStore to initialize...")
             
             # Wait for EventStore to be fully ready by checking logs
