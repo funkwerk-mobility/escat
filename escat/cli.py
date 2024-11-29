@@ -24,29 +24,21 @@ def main(host, port, follow, with_metadata, stream_name):
             # Parse bytes data as JSON
             event_data = json.loads(event.data)
             if isinstance(event_data, dict) and 'body' in event_data:
+                output = event_data['body']
                 if with_metadata:
+                    metadata = json.loads(event.metadata or '{}')
                     output = {
-                        "data": event_data['body'],
+                        "data": output,
                         "metadata": {
                             "id": str(event.id),
-                            # "timestamp": event.created.isoformat(),
                             "type": event.type,
                             "stream": event.stream_name,
-                            # "revision": event.revision,
+                            "timestamp": metadata.get('timestamp'),
+                            "$correlationId": metadata.get('$correlationId'),
+                            "$causationId": metadata.get('$causationId')
                         }
                     }
-                    # Add correlation/causation IDs if present in custom metadata
-                    if event.metadata:
-                        metadata = json.loads(event.metadata)
-                        if '$correlationId' in metadata:
-                            output["metadata"]["$correlationId"] = metadata['$correlationId']
-                        if '$causationId' in metadata:
-                            output["metadata"]["$causationId"] = metadata['$causationId']
-                        if 'timestamp' in metadata:
-                            output["metadata"]["timestamp"] = metadata['timestamp']
-                    click.echo(json.dumps(output))
-                else:
-                    click.echo(json.dumps(event_data['body']))
+                click.echo(json.dumps(output))
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
         raise click.Abort()
