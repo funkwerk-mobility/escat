@@ -15,13 +15,18 @@ class EventStoreContainer(DockerContainer):
 
 @pytest.fixture(scope="session")
 def eventstore():
+    print("\nPulling EventStore container image (this may take a while)...")
     container = EventStoreContainer()
     with container:
-        # Wait for EventStore to be ready
-        wait_for_logs(container, "EventStoreDB started")
-        time.sleep(2)  # Give it a moment to fully initialize
+        print("Starting EventStore container...")
+        # Wait for EventStore to be fully ready by checking logs
+        wait_for_logs(container, "Started HTTP server")
+        wait_for_logs(container, "External TCP")
+        # Additional check - try to connect until port is ready
         port = container.get_exposed_port(2113)
-        yield f"localhost:{port}"
+        host = f"localhost:{port}"
+        print(f"EventStore container ready at {host}")
+        yield host
 
 def test_basic_stream_reading(eventstore):
     # First, write some test events using the HTTP API
