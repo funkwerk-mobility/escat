@@ -17,7 +17,32 @@ escat my-stream
 
 Follow a stream for new events:
 ```bash
-escat --follow my-stream
+escat -f my-stream
+```
+
+Start reading from the end of the stream:
+```bash
+escat -o end -f my-stream
+```
+
+Read only the last event:
+```bash
+escat -o last my-stream
+```
+
+Exit after consuming 10 events:
+```bash
+escat -c 10 my-stream
+```
+
+Quiet mode (suppress informational messages):
+```bash
+escat -q my-stream
+```
+
+Verbose mode for debugging:
+```bash
+escat -v my-stream
 ```
 
 Connect to a specific EventStore instance:
