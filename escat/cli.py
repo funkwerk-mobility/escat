@@ -16,17 +16,17 @@ def main(host, port, follow, with_metadata, stream_name):
     
     if follow:
         click.echo(f"Following {stream_name}...", err=True)
-        
-        def on_caught_up():
-            click.echo("Caught up - waiting for new events...", err=True)
     
     if stream_name == "$all":
-        events = client.read_all() if not follow else client.subscribe_to_all(caught_up_callback=on_caught_up if follow else None)
+        events = client.read_all() if not follow else client.subscribe_to_all(include_caught_up=True)
     else:
-        events = client.read_stream(stream_name) if not follow else client.subscribe_to_stream(stream_name, caught_up_callback=on_caught_up if follow else None)
+        events = client.read_stream(stream_name) if not follow else client.subscribe_to_stream(stream_name, include_caught_up=True)
 
     try:
         for event in events:
+            if follow and hasattr(event, 'caught_up') and event.caught_up:
+                click.echo("Caught up - waiting for new events...", err=True)
+                continue
             # Parse bytes data as JSON
             event_data = json.loads(event.data)
             if isinstance(event_data, dict) and 'body' in event_data:
