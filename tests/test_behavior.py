@@ -108,7 +108,7 @@ def write_test_events(client: EventStoreDBClient, stream_name: str, count: int) 
         data = json.dumps({"body": {"message": f"Follow event {i}"}}).encode()
         client.append_to_stream(
             stream_name,
-            current_version=StreamState.NO_STREAM,
+            current_version=StreamState.ANY,
             events=[NewEvent(
                 type="TestEvent",
                 data=data
