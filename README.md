@@ -22,7 +22,7 @@ escat --follow my-stream
 
 Connect to a specific EventStore instance:
 ```bash
-escat --host eventstore.example.com --port 2113 my-stream
+escat --url "esdb://eventstore.example.com:2113?tls=false" my-stream
 ```
 
 Exclude event metadata from output (included by default):
