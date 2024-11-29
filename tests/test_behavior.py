@@ -41,11 +41,20 @@ def eventstore():
             host = f"localhost:{port}"
             print(f"EventStore container ready at {host}")
             
-            # Test connection by reading $all stream
+            # Test connection by reading $all stream with retries
             client = EventStoreDBClient(uri=f"esdb://{host}?tls=false")
             print("Testing connection to EventStore...")
-            next(client.read_all())
-            print("Connection test successful")
+            max_attempts = 5
+            for attempt in range(max_attempts):
+                try:
+                    next(client.read_all())
+                    print("Connection test successful")
+                    break
+                except Exception as e:
+                    if attempt == max_attempts - 1:
+                        raise
+                    print(f"Connection attempt {attempt + 1} failed, retrying...")
+                    time.sleep(1)
             
             yield host
             
