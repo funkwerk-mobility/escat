@@ -20,8 +20,10 @@ def main(host, port, follow, stream_name):
             events = client.read_stream(stream_name)
             
         for event in events:
-            if isinstance(event.data, dict) and 'body' in event.data:
-                click.echo(json.dumps(event.data['body']))
+            # Parse bytes data as JSON
+            event_data = json.loads(event.data)
+            if isinstance(event_data, dict) and 'body' in event_data:
+                click.echo(json.dumps(event_data['body']))
     except Exception as e:
         click.echo(f"Error: {str(e)}", err=True)
         raise click.Abort()
