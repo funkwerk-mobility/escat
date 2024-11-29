@@ -24,3 +24,8 @@ Connect to a specific EventStore instance:
 ```bash
 escat --host eventstore.example.com --port 2113 my-stream
 ```
+
+Include event metadata in output:
+```bash
+escat --with-metadata my-stream
+```
