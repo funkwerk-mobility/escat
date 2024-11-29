@@ -16,5 +16,11 @@ dependencies = [
     "esdbclient>=0.4.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "testcontainers>=3.7.0",
+]
+
 [project.scripts]
 escat = "escat.cli:main"
