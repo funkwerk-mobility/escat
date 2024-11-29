@@ -13,7 +13,12 @@ def main(host, port, follow, stream_name):
     )
     
     try:
-        for event in client.read_stream(stream_name):
+        if stream_name == "$all":
+            events = client.read_all()
+        else:
+            events = client.read_stream(stream_name)
+            
+        for event in events:
             click.echo(f"Event: {event.type}")
             click.echo(f"Data: {event.data}")
             click.echo("---")
