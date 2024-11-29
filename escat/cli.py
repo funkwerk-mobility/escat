@@ -40,7 +40,7 @@ def main(url, follow, no_metadata, stream_name):
                     })
                     output = {
                         "data": output,
-                        "metadata": metadata
+                        "metadata": event_metadata
                     }
                 click.echo(json.dumps(output))
     except KeyboardInterrupt:
