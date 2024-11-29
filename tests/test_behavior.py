@@ -158,7 +158,7 @@ def test_follow_and_count(eventstore):
         process.wait()
     
     assert len(output) == expected_events
-    assert all("Follow event" in event["message"] for event in output)
+    assert all("Follow event" in event["data"]["message"] for event in output)
 
 def test_offset_options(eventstore):
     stream_name = "test-offset"
