@@ -32,10 +32,10 @@ classifiers = [
 Homepage = "https://github.com/funkwerk-mobility/escat"
 Documentation = "https://github.com/funkwerk-mobility/escat#readme"
 Repository = "https://github.com/funkwerk-mobility/escat.git"
-dependencies = [
-    "click>=8.0.0",
-    "esdbclient>=0.4.0",
-]
+
+[project.dependencies]
+click = ">=8.0.0"
+esdbclient = ">=0.4.0"
 
 [project.optional-dependencies]
 test = [
