@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "escat"
 version = "0.1.0"
 authors = [
-  { name = "Philipp Schuster", email = "phip1611@gmail.com" },
+  { name = "Mathis Beer", email = "mathis_beer@funkwerk.com" },
 ]
 description = "EventStore CLI tool for reading and following streams"
 readme = "README.md"
@@ -29,9 +29,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/phip1611/escat"
-Documentation = "https://github.com/phip1611/escat#readme"
-Repository = "https://github.com/phip1611/escat.git"
+Homepage = "https://github.com/funkwerk-mobility/escat"
+Documentation = "https://github.com/funkwerk-mobility/escat#readme"
+Repository = "https://github.com/funkwerk-mobility/escat.git"
 dependencies = [
     "click>=8.0.0",
     "esdbclient>=0.4.0",
