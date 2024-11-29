@@ -2,6 +2,7 @@ import json
 import subprocess
 import time
 import uuid
+from typing import List, Dict, Any
 from testcontainers.core.container import DockerContainer
 from testcontainers.core.waiting_utils import wait_for_logs
 from esdbclient import EventStoreDBClient, StreamState
@@ -99,14 +100,47 @@ def test_basic_stream_reading(eventstore):
     for i, event in enumerate(output_events):
         assert event["message"] == f"Test event {i}"
 
+def create_test_event(i: int) -> Dict[str, Any]:
+    """Create a test event with the given index."""
+    return {
+        'id': str(uuid.uuid4()),
+        'type': 'TestEvent',
+        'data': json.dumps({"body": {"message": f"Follow event {i}"}})
+    }
+
+def write_test_events(client: EventStoreDBClient, stream_name: str, count: int) -> None:
+    """Write a series of test events to the stream."""
+    print(f"Writing {count} test events to {stream_name}...")
+    for i in range(count):
+        client.append_to_stream(
+            stream_name,
+            current_version=StreamState.NO_STREAM,
+            events=[create_test_event(i)]
+        )
+    print("Test events written successfully")
+
+def read_process_output(process: subprocess.Popen, expected_count: int, timeout_seconds: int = 10) -> List[Dict[str, Any]]:
+    """Read output from a process until expected count or timeout."""
+    print("Reading output from escat...")
+    output = []
+    timeout = time.time() + timeout_seconds
+    while len(output) < expected_count and time.time() < timeout:
+        line = process.stdout.readline()
+        if not line:
+            print("No more output from escat")
+            break
+        print(f"Got line from escat: {line.strip()}")
+        output.append(json.loads(line))
+    return output
+
 def test_follow_and_count(eventstore):
     print("\nSetting up test_follow_and_count...")
     stream_name = "test-follow"
+    expected_events = 2
     
     print(f"Starting escat process to follow {stream_name}...")
-    # Run escat with follow and count options
     process = subprocess.Popen(
-        ["escat", "--host", eventstore, "-f", "-c", "2", "-q", stream_name],
+        ["escat", "--host", eventstore, "-f", "-c", str(expected_events), "-q", stream_name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
@@ -116,41 +150,17 @@ def test_follow_and_count(eventstore):
         print("Waiting for escat to initialize...")
         time.sleep(1)
         
-        # Create EventStore client to write test events
         print("Creating EventStore client...")
         client = EventStoreDBClient(uri=f"esdb://{eventstore}?tls=false")
         
-        print(f"Writing test events to {stream_name}...")
-        # Write test events
-        for i in range(3):
-            client.append_to_stream(
-                stream_name,
-                current_version=StreamState.NO_STREAM,
-                events=[{
-                    'id': str(uuid.uuid4()),
-                    'type': 'TestEvent',
-                    'data': json.dumps({"body": {"message": f"Follow event {i}"}}),
-                }]
-            )
-        print("Test events written successfully")
-        
-        print("Reading output from escat...")
-        # Read output
-        output = []
-        timeout = time.time() + 10  # 10 second timeout
-        while len(output) < 2 and time.time() < timeout:  # We expect exactly 2 events due to -c 2
-            line = process.stdout.readline()
-            if not line:
-                print("No more output from escat")
-                break
-            print(f"Got line from escat: {line.strip()}")
-            output.append(json.loads(line))
+        write_test_events(client, stream_name, 3)
+        output = read_process_output(process, expected_events)
     
     finally:
         process.terminate()
         process.wait()
     
-    assert len(output) == 2
+    assert len(output) == expected_events
     assert all("Follow event" in event["message"] for event in output)
 
 def test_offset_options(eventstore):
