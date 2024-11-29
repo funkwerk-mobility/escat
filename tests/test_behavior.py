@@ -28,33 +28,30 @@ def eventstore():
             print(f"Container started with ID: {container.get_wrapped_container().id}")
             print("Waiting for EventStore to initialize...")
             
-            # Wait for EventStore to be fully ready by checking logs
-            try:
-                wait_for_logs(container, "IS LEADER... SPARTA!", timeout=30)
-            except Exception as e:
-                print(f"\nTimeout waiting for EventStore logs: {e}")
-                print("\nCurrent container logs:")
-                print_logs()
-                raise Exception("EventStore failed to start properly") from e
             # Get connection details
             port = container.get_exposed_port(2113)
             host = f"localhost:{port}"
             print(f"EventStore container ready at {host}")
             
-            # Test connection by reading $all stream with retries
-            client = EventStoreDBClient(uri=f"esdb://{host}?tls=false")
-            print("Testing connection to EventStore...")
-            max_attempts = 5
-            for attempt in range(max_attempts):
+            # Wait up to 30 seconds for successful connection
+            start_time = time.time()
+            timeout = 30
+            last_error = None
+            
+            while time.time() - start_time < timeout:
                 try:
+                    client = EventStoreDBClient(uri=f"esdb://{host}?tls=false")
                     next(client.read_all())
                     print("Connection test successful")
                     break
                 except Exception as e:
-                    if attempt == max_attempts - 1:
-                        raise
-                    print(f"Connection attempt {attempt + 1} failed, retrying...")
+                    last_error = e
+                    print(f"Connection attempt failed, retrying... ({e})")
                     time.sleep(1)
+            else:
+                print("\nTimeout waiting for EventStore to be ready")
+                print_logs()
+                raise Exception("EventStore failed to start properly") from last_error
             
             yield host
             
