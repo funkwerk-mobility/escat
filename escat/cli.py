@@ -1,6 +1,6 @@
 import click
 import json
-from esdbclient import EventStoreDBClient
+from esdbclient import CaughtUp, EventStoreDBClient
 
 @click.command()
 @click.option('--host', default='localhost', help='EventStore host')
@@ -13,7 +13,7 @@ def main(host, port, follow, with_metadata, stream_name):
     client = EventStoreDBClient(
         uri=f"esdb://{host}:{port}?tls=false"
     )
-    
+
     if follow:
         click.echo(f"Following {stream_name}...", err=True)
     
@@ -24,11 +24,14 @@ def main(host, port, follow, with_metadata, stream_name):
 
     try:
         for event in events:
-            if follow and hasattr(event, 'caught_up') and event.caught_up:
-                click.echo("Caught up - waiting for new events...", err=True)
+            if follow and isinstance(event, CaughtUp):
+                click.echo("# caught up - waiting for new events...", err=True)
                 continue
-            # Parse bytes data as JSON
-            event_data = json.loads(event.data)
+            try:
+                event_data = json.loads(event.data)
+            except json.JSONDecodeError as e:
+                click.echo(f"Error: Cannot JSON decode {event}: {str(e)}")
+                continue
             if isinstance(event_data, dict) and 'body' in event_data:
                 output = event_data['body']
                 if with_metadata:
@@ -45,9 +48,6 @@ def main(host, port, follow, with_metadata, stream_name):
                 click.echo(json.dumps(output))
     except KeyboardInterrupt:
         click.echo("\nStopped following stream.", err=True)
-    except Exception as e:
-        click.echo(f"Error: {str(e)}", err=True)
-        raise click.Abort()
 
 if __name__ == '__main__':
     main()
