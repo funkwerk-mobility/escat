@@ -33,15 +33,6 @@ The output will be JSON lines with event data and metadata (by default):
 }
 ```
 
-Note: Your event data should be wrapped in a "body" field when writing events:
-```json
-{
-  "body": {
-    "message": "Hello World"
-  }
-}
-```
-
 Follow a stream for new events:
 ```bash
 esdbcat -f my-stream
