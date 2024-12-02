@@ -106,7 +106,7 @@ def run_escat(host: str, *args, env=None):
     if env is None:
         env = get_subprocess_env()
     return subprocess.run(
-        ["python", "-m", "escat.cli", "--host", host, *args],
+        ["python", "-m", "esdbcat.cli", "--host", host, *args],
         capture_output=True,
         text=True,
         env=env
@@ -129,15 +129,15 @@ def write_test_events(client: EventStoreDBClient, stream_name: str, count: int, 
 
 def read_process_output(process: subprocess.Popen, expected_count: int, timeout_seconds: int = 10) -> List[Dict[str, Any]]:
     """Read output from a process until expected count or timeout."""
-    print("Reading output from escat...")
+    print("Reading output from esdbcat...")
     output = []
     timeout = time.time() + timeout_seconds
     while len(output) < expected_count and time.time() < timeout:
         line = process.stdout.readline()
         if not line:
-            print("No more output from escat")
+            print("No more output from esdbcat")
             break
-        print(f"Got line from escat: {line.strip()}")
+        print(f"Got line from esdbcat: {line.strip()}")
         output.append(json.loads(line))
     return output
 
@@ -148,7 +148,7 @@ def test_follow_and_count(test_context):
     print(f"Starting escat process to follow {test_context.stream_name}...")
     env = get_subprocess_env()
     process = subprocess.Popen(
-        ["python", "-m", "escat.cli", "--host", test_context.eventstore_host, 
+        ["python", "-m", "esdbcat.cli", "--host", test_context.eventstore_host, 
          "-f", "-c", str(expected_events), "-q", test_context.stream_name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

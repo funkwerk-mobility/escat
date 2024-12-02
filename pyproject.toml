@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "escat"
+name = "esdbcat"
 version = "0.1.0"
 authors = [
   { name = "Mathis Beer", email = "mathis_beer@funkwerk.com" },
@@ -49,4 +49,4 @@ validate = [
 ]
 
 [project.scripts]
-escat = "escat.cli:main"
+esdbcat = "esdbcat.cli:main"

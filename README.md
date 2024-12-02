@@ -1,4 +1,4 @@
-# escat
+# esdbcat
 
 A command-line tool for reading EventStore streams, inspired by kafkacat.
 
@@ -9,14 +9,14 @@ This repository was near-entirely created by Claude 3.5 Sonnet. Good job Sonnet!
 ## Installation
 
 ```bash
-pip install escat
+pip install esdbcat
 ```
 
 ## Usage
 
 Read all events from a stream:
 ```bash
-escat my-stream
+esdbcat my-stream
 ```
 
 The output will be JSON lines with event data and metadata (by default):
@@ -44,55 +44,55 @@ Note: Your event data should be wrapped in a "body" field when writing events:
 
 Follow a stream for new events:
 ```bash
-escat -f my-stream
+esdbcat -f my-stream
 ```
 
 Start reading from the end of the stream:
 ```bash
-escat -o end -f my-stream
+esdbcat -o end -f my-stream
 ```
 
 Read only the last event:
 ```bash
-escat -o last my-stream
+esdbcat -o last my-stream
 ```
 
 Exit after consuming 10 events:
 ```bash
-escat -c 10 my-stream
+esdbcat -c 10 my-stream
 ```
 
 Read the special $all stream:
 ```bash
-escat $all
+esdbcat $all
 ```
 
 Quiet mode (suppress informational messages):
 ```bash
-escat -q my-stream
+esdbcat -q my-stream
 ```
 
 Verbose mode for debugging:
 ```bash
-escat -v my-stream
+esdbcat -v my-stream
 ```
 
 Connect to a specific EventStore instance:
 ```bash
-escat --host eventstore.example.com:2113 my-stream
+esdbcat --host eventstore.example.com:2113 my-stream
 ```
 
 Or use a full connection URL:
 ```bash
-escat --url "esdb://eventstore.example.com:2113?tls=false" my-stream
+esdbcat --url "esdb://eventstore.example.com:2113?tls=false" my-stream
 ```
 
 Read events without metadata:
 ```bash
-escat --no-metadata my-stream
+esdbcat --no-metadata my-stream
 ```
 
 Connect with authentication:
 ```bash
-escat --url "esdb://admin:changeit@localhost:2113?tls=false" my-stream
+esdbcat --url "esdb://admin:changeit@localhost:2113?tls=false" my-stream
 ```
