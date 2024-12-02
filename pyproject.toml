@@ -33,9 +33,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/funkwerk-mobility/escat"
-Documentation = "https://github.com/funkwerk-mobility/escat#readme"
-Repository = "https://github.com/funkwerk-mobility/escat.git"
+Homepage = "https://github.com/funkwerk-mobility/esdbcat"
+Documentation = "https://github.com/funkwerk-mobility/esdbcat#readme"
+Repository = "https://github.com/funkwerk-mobility/esdbcat.git"
 
 [project.optional-dependencies]
 test = [
