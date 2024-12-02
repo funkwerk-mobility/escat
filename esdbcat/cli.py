@@ -41,10 +41,7 @@ def process_event(
         click.echo(f"Error: Cannot JSON decode {event}: {e!s}")
         return None
 
-    if not isinstance(event_data, dict) or 'body' not in event_data:
-        return None
-
-    output: Dict[str, Any] = event_data['body']
+    output: Dict[str, Any] = event_data
     if metadata:
         event_metadata = json.loads(event.metadata or '{}')
         event_metadata.update({
