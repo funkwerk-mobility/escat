@@ -198,6 +198,43 @@ def test_follow_and_count(test_context: StreamContext) -> None:
     assert all("Follow event" in event["data"]["message"] for event in output)
 
 
+def test_link_resolution(test_context: StreamContext) -> None:
+    """Test that links to events in other streams are properly resolved."""
+    print("\nSetting up test_link_resolution...")
+    
+    # Create source stream with events
+    source_stream = f"source-{test_context.stream_name}"
+    write_test_events(test_context.client, source_stream, 1, prefix="Source")
+    
+    # Read the source event to get its ID
+    source_events = list(test_context.client.read_stream(source_stream))
+    assert len(source_events) == 1
+    source_event = source_events[0]
+    
+    # Create a link to the source event
+    link_data = json.dumps({"message": "This is a link"}).encode()
+    test_context.client.append_to_stream(
+        test_context.stream_name,
+        current_version=StreamState.ANY,
+        events=[NewEvent(
+            type="$>",  # EventStore link event type
+            data=link_data,
+            metadata=json.dumps({
+                "source_event_id": str(source_event.id),
+                "source_stream_name": source_stream,
+            }).encode()
+        )]
+    )
+    
+    # Read the linked stream with escat
+    result = run_escat(test_context.eventstore_host, "-q", test_context.stream_name)
+    output_events = [json.loads(line) for line in result.stdout.strip().split("\n") if line.strip()]
+    
+    # Verify we got the resolved event
+    assert len(output_events) == 1
+    assert output_events[0]["data"]["message"] == "Source event 0"
+
+
 def test_offset_options(test_context: StreamContext) -> None:
     # Test reading from end
     result = run_escat(test_context.eventstore_host, "-o", "end", "-q", test_context.stream_name)
