@@ -212,24 +212,19 @@ def test_link_resolution(test_context: StreamContext) -> None:
     source_event = source_events[0]
     
     # Create a link to the source event
-    link_data = json.dumps({"message": "This is a link"}).encode()
     test_context.client.append_to_stream(
         test_context.stream_name,
         current_version=StreamState.ANY,
         events=[NewEvent(
             type="$>",  # EventStore link event type
-            data=link_data,
-            metadata=json.dumps({
-                "source_event_id": str(source_event.id),
-                "source_stream_name": source_stream,
-            }).encode()
+            data=f"0@{source_stream}".encode(),
         )]
     )
     
     # Read the linked stream with escat
     result = run_escat(test_context.eventstore_host, "-q", test_context.stream_name)
     output_events = [json.loads(line) for line in result.stdout.strip().split("\n") if line.strip()]
-    
+
     # Verify we got the resolved event
     assert len(output_events) == 1
     assert output_events[0]["data"]["message"] == "Source event 0"
