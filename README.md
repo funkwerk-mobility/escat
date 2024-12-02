@@ -1,5 +1,9 @@
 # esdbcat
 
+[![PyPI version](https://badge.fury.io/py/esdbcat.svg)](https://badge.fury.io/py/esdbcat)
+[![License](https://img.shields.io/badge/License-BSL--1.0-blue.svg)](https://opensource.org/licenses/BSL-1.0)
+[![Python Versions](https://img.shields.io/pypi/pyversions/esdbcat.svg)](https://pypi.org/project/esdbcat/)
+
 A command-line tool for reading EventStore streams, inspired by kafkacat.
 
 ## AI Code Notice

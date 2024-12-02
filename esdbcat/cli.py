@@ -1,6 +1,7 @@
+from typing import Iterator, Optional, Union, Any
 import click
 import json
-from esdbclient import CaughtUp, EventStoreDBClient
+from esdbclient import CaughtUp, EventStoreDBClient, ResolvedEvent
 
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option('--url', help='EventStore connection URL (overrides --host if provided)')
@@ -13,7 +14,9 @@ from esdbclient import CaughtUp, EventStoreDBClient
 @click.option('-q', '--quiet', is_flag=True, help='Suppress informational messages')
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
 @click.argument('stream_name')
-def main(url, host, follow, metadata, offset, count, quiet, verbose, stream_name):
+def main(url: Optional[str], host: str, follow: bool, metadata: bool, 
+         offset: str, count: Optional[int], quiet: bool, verbose: bool, 
+         stream_name: str) -> None:
     """Read events from an EventStore stream"""
     connection_url = url if url else f"esdb://{host}:2113?tls=false"
     client = EventStoreDBClient(uri=connection_url)
