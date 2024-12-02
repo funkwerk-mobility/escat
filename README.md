@@ -2,6 +2,10 @@
 
 A command-line tool for reading EventStore streams, inspired by kafkacat.
 
+## AI Code Notice
+
+This repository was near-entirely created by Claude 3.5 Sonnet. Good job Sonnet!
+
 ## Installation
 
 ```bash
