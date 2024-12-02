@@ -14,16 +14,16 @@ def get_event_stream(
     """Get event stream based on parameters."""
     if stream_name == "$all":
         if offset == 'end':
-            return client.subscribe_to_all(from_end=True) if follow else iter([])
-        return (client.read_all() if not follow
-                else client.subscribe_to_all(include_caught_up=True))
+            return client.subscribe_to_all(from_end=True, resolve_links=True) if follow else iter([])
+        return (client.read_all(resolve_links=True) if not follow
+                else client.subscribe_to_all(include_caught_up=True, resolve_links=True))
     if offset == 'end':
-        return client.subscribe_to_stream(stream_name, from_end=True) if follow else iter([])
+        return client.subscribe_to_stream(stream_name, from_end=True, resolve_links=True) if follow else iter([])
     if offset == 'last':
-        last_event = next(client.read_stream(stream_name, backwards=True), None)
+        last_event = next(client.read_stream(stream_name, backwards=True, resolve_links=True), None)
         return iter([last_event] if last_event else [])
-    return (client.read_stream(stream_name) if not follow
-            else client.subscribe_to_stream(stream_name, include_caught_up=True))
+    return (client.read_stream(stream_name, resolve_links=True) if not follow
+            else client.subscribe_to_stream(stream_name, include_caught_up=True, resolve_links=True))
 
 
 def process_event(
