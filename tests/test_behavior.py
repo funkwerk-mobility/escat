@@ -21,11 +21,12 @@ class StreamContext:
 class EventStoreContainer(DockerContainer):
     def __init__(self) -> None:
         """Initialize EventStore container with required configuration."""
-        super().__init__("eventstore/eventstore:20.10.2-buster-slim")
-        self.with_exposed_ports(2113)
+        super().__init__("eventstore/eventstore:21.10.11-bionic")
+        self.with_bind_ports(2113, 2113)
         self.with_env("EVENTSTORE_INSECURE", "true")
         self.with_env("EVENTSTORE_EXT_TCP_PORT", "1113")
-        self.with_env("EVENTSTORE_EXT_HTTP_PORT", "2113")
+        self.with_env("EVENTSTORE_HTTP_PORT", "2113")
+        self.with_env("EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP", "true")
 
 
 @pytest.fixture(scope="session")
@@ -44,7 +45,7 @@ def eventstore() -> Generator[str, None, None]:
             print("Waiting for EventStore to initialize...")
 
             # Get connection details
-            host = container.get_container_host_ip()
+            host = "localhost"
             print(f"EventStore container ready at {host}")
 
             # Wait up to 30 seconds for successful connection
@@ -55,7 +56,11 @@ def eventstore() -> Generator[str, None, None]:
             while time.time() - start_time < timeout:
                 try:
                     client = EventStoreDBClient(uri=f"esdb://{host}?tls=false")
-                    next(client.read_all())
+                    client.append_to_stream(
+                        "test",
+                        current_version=StreamState.ANY,
+                        events=[NewEvent(type="TestEvent", data="".encode())],
+                    )
                     print("Connection test successful")
                     break
                 except Exception as e:
@@ -85,8 +90,8 @@ def test_basic_stream_reading(test_context: StreamContext) -> None:
     # Write test events
     write_test_events(test_context.client, test_context.stream_name, 3)
 
-    # Run escat to read the events
-    result = run_escat(test_context.eventstore_host, "-q", test_context.stream_name)
+    # Run esdbcat to read the events
+    result = run_esdbcat(test_context.eventstore_host, "-q", test_context.stream_name)
 
     # Parse the output
     output_events = [json.loads(line) for line in result.stdout.strip().split("\n") if line.strip()]
@@ -110,7 +115,7 @@ def get_subprocess_env() -> Dict[str, str]:
     return env
 
 
-def run_escat(
+def run_esdbcat(
     host: str, *args: str, env: Optional[Dict[str, str]] = None
 ) -> subprocess.CompletedProcess[str]:
     if env is None:
@@ -130,7 +135,7 @@ def write_test_events(
     """Write a series of test events to the stream."""
     print(f"Writing {count} test events to {stream_name}...")
     for i in range(count):
-        data = json.dumps({"body": {"message": f"{prefix} event {i}"}}).encode()
+        data = json.dumps({"message": f"{prefix} event {i}"}).encode()
         client.append_to_stream(
             stream_name,
             current_version=StreamState.ANY,
@@ -162,7 +167,7 @@ def test_follow_and_count(test_context: StreamContext) -> None:
     print("\nSetting up test_follow_and_count...")
     expected_events = 2
 
-    print(f"Starting escat process to follow {test_context.stream_name}...")
+    print(f"Starting esdbcat process to follow {test_context.stream_name}...")
     env = get_subprocess_env()
     process = subprocess.Popen(
         [
@@ -184,7 +189,7 @@ def test_follow_and_count(test_context: StreamContext) -> None:
     )
 
     try:
-        print("Waiting for escat to initialize...")
+        print("Waiting for esdbcat to initialize...")
         time.sleep(1)
 
         write_test_events(test_context.client, test_context.stream_name, 3, prefix="Follow")
@@ -217,12 +222,13 @@ def test_link_resolution(test_context: StreamContext) -> None:
         current_version=StreamState.ANY,
         events=[NewEvent(
             type="$>",  # EventStore link event type
-            data=f"0@{source_stream}".encode(),
+            data=f"0@{source_stream}".encode()
         )]
     )
+    print(f"Appended link to {test_context.stream_name}")
     
-    # Read the linked stream with escat
-    result = run_escat(test_context.eventstore_host, "-q", test_context.stream_name)
+    # Read the linked stream with esdbcat
+    result = run_esdbcat(test_context.eventstore_host, "-q", test_context.stream_name)
     output_events = [json.loads(line) for line in result.stdout.strip().split("\n") if line.strip()]
 
     # Verify we got the resolved event
@@ -232,9 +238,9 @@ def test_link_resolution(test_context: StreamContext) -> None:
 
 def test_offset_options(test_context: StreamContext) -> None:
     # Test reading from end
-    result = run_escat(test_context.eventstore_host, "-o", "end", "-q", test_context.stream_name)
+    result = run_esdbcat(test_context.eventstore_host, "-o", "end", "-q", test_context.stream_name)
     assert result.stdout.strip() == ""  # Should be empty when reading from end
 
     # Test reading last event
-    result = run_escat(test_context.eventstore_host, "-o", "last", "-q", test_context.stream_name)
+    result = run_esdbcat(test_context.eventstore_host, "-o", "last", "-q", test_context.stream_name)
     assert len(result.stdout.strip().split("\n")) == 1  # Should only get one event
