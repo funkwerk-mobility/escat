@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "esdbcat"
-version = "0.1.2"
+version = "0.1.3"
 authors = [
   { name = "Mathis Beer", email = "mathis_beer@funkwerk.com" },
 ]
