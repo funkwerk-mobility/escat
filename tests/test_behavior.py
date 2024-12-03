@@ -59,7 +59,7 @@ def eventstore() -> Generator[str, None, None]:
                     client.append_to_stream(
                         "test",
                         current_version=StreamState.ANY,
-                        events=[NewEvent(type="TestEvent", data="".encode())],
+                        events=[NewEvent(type="TestEvent", data=b"")],
                     )
                     print("Connection test successful")
                     break
@@ -206,16 +206,15 @@ def test_follow_and_count(test_context: StreamContext) -> None:
 def test_link_resolution(test_context: StreamContext) -> None:
     """Test that links to events in other streams are properly resolved."""
     print("\nSetting up test_link_resolution...")
-    
+
     # Create source stream with events
     source_stream = f"source-{test_context.stream_name}"
     write_test_events(test_context.client, source_stream, 1, prefix="Source")
-    
+
     # Read the source event to get its ID
     source_events = list(test_context.client.read_stream(source_stream))
     assert len(source_events) == 1
-    source_event = source_events[0]
-    
+
     # Create a link to the source event
     test_context.client.append_to_stream(
         test_context.stream_name,
@@ -226,7 +225,7 @@ def test_link_resolution(test_context: StreamContext) -> None:
         )]
     )
     print(f"Appended link to {test_context.stream_name}")
-    
+
     # Read the linked stream with esdbcat
     result = run_esdbcat(test_context.eventstore_host, "-q", test_context.stream_name)
     output_events = [json.loads(line) for line in result.stdout.strip().split("\n") if line.strip()]
@@ -237,10 +236,15 @@ def test_link_resolution(test_context: StreamContext) -> None:
 
 
 def test_offset_options(test_context: StreamContext) -> None:
-    # Test reading from end
-    result = run_esdbcat(test_context.eventstore_host, "-o", "end", "-q", test_context.stream_name)
-    assert result.stdout.strip() == ""  # Should be empty when reading from end
+    # Write some test events
+    write_test_events(test_context.client, test_context.stream_name, 5)
 
-    # Test reading last event
-    result = run_esdbcat(test_context.eventstore_host, "-o", "last", "-q", test_context.stream_name)
-    assert len(result.stdout.strip().split("\n")) == 1  # Should only get one event
+    # Test reading from end (should be empty)
+    result = run_esdbcat(test_context.eventstore_host, "-o", "end", "-q", test_context.stream_name)
+    assert result.stdout.strip() == ""
+
+    # Test reading from numeric offset
+    result = run_esdbcat(test_context.eventstore_host, "-o", "2", "-q", test_context.stream_name)
+    events = [json.loads(line) for line in result.stdout.strip().split("\n")]
+    assert len(events) == 3  # Should get events 2, 3, and 4
+    assert events[0]["data"]["message"] == "Test event 2"
