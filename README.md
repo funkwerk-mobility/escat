@@ -57,6 +57,11 @@ Exit after consuming 10 events:
 esdbcat -c 10 my-stream
 ```
 
+Filter events by type:
+```bash
+esdbcat -t UserCreated my-stream
+```
+
 Read the special $all stream:
 ```bash
 esdbcat $all

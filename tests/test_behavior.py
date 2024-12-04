@@ -248,3 +248,33 @@ def test_offset_options(test_context: StreamContext) -> None:
     events = [json.loads(line) for line in result.stdout.strip().split("\n")]
     assert len(events) == 3  # Should get events 2, 3, and 4
     assert events[0]["data"]["message"] == "Test event 2"
+
+
+def test_event_type_filtering(test_context: StreamContext) -> None:
+    """Test filtering events by type."""
+    # Write events with different types
+    client = test_context.client
+    stream = test_context.stream_name
+    
+    # Event with type "TypeA"
+    data = json.dumps({"message": "Event A"}).encode()
+    client.append_to_stream(
+        stream,
+        current_version=StreamState.ANY,
+        events=[NewEvent(type="TypeA", data=data)]
+    )
+    
+    # Event with type "TypeB"
+    data = json.dumps({"message": "Event B"}).encode()
+    client.append_to_stream(
+        stream,
+        current_version=StreamState.ANY,
+        events=[NewEvent(type="TypeB", data=data)]
+    )
+
+    # Test filtering for TypeA
+    result = run_esdbcat(test_context.eventstore_host, "-t", "TypeA", "-q", test_context.stream_name)
+    events = [json.loads(line) for line in result.stdout.strip().split("\n")]
+    assert len(events) == 1
+    assert events[0]["metadata"]["type"] == "TypeA"
+    assert events[0]["data"]["message"] == "Event A"

@@ -84,10 +84,11 @@ def process_event(
 @click.option('-c', '--count', type=int, help='Exit after consuming N events')
 @click.option('-q', '--quiet', is_flag=True, help='Suppress informational messages')
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
+@click.option('-t', '--type', 'event_type', help='Filter events by type')
 @click.argument('stream_name')
 def main(url: Optional[str], host: str, follow: bool, metadata: bool,  # noqa: PLR0913, PLR0912
          offset: str, count: Optional[int], quiet: bool, verbose: bool,
-         stream_name: str) -> None:
+         event_type: Optional[str], stream_name: str) -> None:
     """Read events from an EventStore stream"""
     connection_url = url if url else f"esdb://{host}:2113?tls=false"
     client = EventStoreDBClient(uri=connection_url)
@@ -120,6 +121,9 @@ def main(url: Optional[str], host: str, follow: bool, metadata: bool,  # noqa: P
 
                 if isinstance(event, RecordedEvent):
                     last_position = event.commit_position
+
+                    if event_type and event.type != event_type:
+                        continue
 
                     output = process_event(event, metadata, verbose)
                     if output:
